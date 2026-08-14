@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>FMGE Master v4</title>
+<style>
+:root{--bg:#080d19;--card:#121a2b;--card2:#18233a;--text:#f5f7ff;--muted:#9aa8c2;--accent:#70a7ff;--good:#4ade80;--bad:#fb7185;--line:#293752;--gold:#fbbf24}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#070b14,#101a2d);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}.app{max-width:950px;margin:auto;padding:16px 14px 70px}.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px}.brand{font-size:24px;font-weight:850}.brand span{color:var(--accent)}button{border:0;border-radius:12px;padding:11px 14px;background:var(--accent);color:#07101f;font-weight:750}button.ghost,.chip{background:var(--card2);border:1px solid var(--line);color:var(--text)}button:disabled{opacity:.55}.hero,.card{background:var(--card);border:1px solid var(--line);border-radius:18px}.hero{padding:19px;margin-bottom:14px}.hero h1{margin:0 0 6px;font-size:27px}.hero p{margin:0;color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:15px}.stat{background:#0c1425;border:1px solid var(--line);border-radius:13px;padding:11px}.stat b{display:block;font-size:20px}.stat small{color:var(--muted)}.section{margin-top:17px}.section h2{font-size:18px;margin:0 0 10px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{padding:14px}.click{cursor:pointer}.card h3{margin:0 0 5px}.card p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}.pill{font-size:11px;padding:5px 8px;border-radius:999px;background:#202d48;color:#bdd0f1}.subject{display:flex;justify-content:space-between;gap:10px;align-items:center}.panel{display:none}.panel.active{display:block}.back{margin-bottom:10px}.row{display:flex;gap:8px;flex-wrap:wrap}.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.select,input,textarea{width:100%;background:#0c1424;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit}.toolbar .select{flex:1;min-width:150px}.question{font-size:19px;line-height:1.5;margin:12px 0}.options{display:grid;gap:9px}.option{text-align:left;background:var(--card2);color:var(--text);border:1px solid var(--line)}.option.correct{background:#103521;border-color:var(--good)}.option.wrong{background:#381824;border-color:var(--bad)}.explain{margin-top:13px;padding:13px;border-left:3px solid var(--accent);background:#0d1627;border-radius:10px;line-height:1.55}.progress{height:7px;background:#202b40;border-radius:20px;overflow:hidden}.bar{height:100%;background:var(--accent);width:0}.topic{margin-top:8px;padding:11px;background:#0d1526;border:1px solid var(--line);border-radius:11px}.topic b{display:block;margin-bottom:3px}.danger{color:var(--bad)}.good{color:var(--good)}.muted{color:var(--muted)}.hide{display:none!important}.small{font-size:12px}.fact{margin-bottom:9px}.fact b{color:#c9d8f2}.badge{display:inline-block;padding:4px 7px;border-radius:8px;background:#26334f;font-size:11px;color:#c8d7ef}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top"><div class="brand">FMGE <span>MASTER v4</span></div><button class="ghost" onclick="resetAll()">Reset progress</button></div>
+
+<section id="home" class="panel active">
+<div class="hero">
+<h1>Learn → Test → Fix → Revise</h1>
+<p>Your single-file FMGE command center. Progress is stored on this device. <span class="badge">Biochemistry source loaded</span></p>
+<div class="stats">
+<div class="stat"><b id="accuracy">0%</b><small>Accuracy</small></div>
+<div class="stat"><b id="attempted">0</b><small>Attempted</small></div>
+<div class="stat"><b id="wrongCount">0</b><small>Wrong</small></div>
+<div class="stat"><b id="mastered">0</b><small>Correct</small></div>
+</div>
+</div>
+<div class="section"><h2>Modes</h2><div class="grid">
+<div class="card click" onclick="openMCQ()"><h3>❓ MCQ Trainer</h3><p>Subject/topic filtering, explanations and weak-topic tracking.</p></div>
+<div class="card click" onclick="show('weakPanel');renderWeak()"><h3>🎯 Weak Topics</h3><p>Re-test concepts you miss most.</p></div>
+<div class="card click" onclick="show('rapidPanel')"><h3>⚡ Rapid Revision</h3><p>Classic FMGE associations and traps.</p></div>
+<div class="card click" onclick="show('notesPanel')"><h3>📝 Notes</h3><p>Personal notes stored locally.</p></div><div class="card click" onclick="show('sourceNotesPanel');renderSourceNotes()"><h3>📖 Source Notes</h3><p>Biochemistry notes loaded from your PDF.</p></div><div class="card click" onclick="show('libraryPanel')"><h3>📚 Study Library</h3><p>Read the actual Biochemistry PDF inside the website.</p></div>
+</div></div>
+<div class="section"><h2>19 FMGE subjects</h2><div id="subjectGrid" class="grid"></div></div>
+</section>
+
+<section id="mcqPanel" class="panel">
+<button class="ghost back" onclick="show('home')">← Home</button>
+<div class="hero"><h1>❓ MCQ Trainer</h1><p>Answer first. Explanation appears after you commit.</p></div>
+<div class="toolbar">
+<select id="subjectFilter" class="select" onchange="applyFilter()"></select>
+<select id="topicFilter" class="select" onchange="applyFilter()"></select>
+<button class="ghost" onclick="weakOnly=!weakOnly;applyFilter()">Weak only</button>
+</div>
+<div class="card">
+<div id="qmeta" class="small muted"></div><div class="progress"><div id="qbar" class="bar"></div></div>
+<div id="qtext" class="question"></div><div id="opts" class="options"></div><div id="feedback"></div>
+<div class="row" style="margin-top:13px"><button id="nextBtn" class="hide" onclick="nextQ()">Next →</button><button id="shuffleBtn" class="ghost" onclick="shuffleCurrent()">New question</button></div>
+</div>
+</section>
+
+<section id="weakPanel" class="panel">
+<button class="ghost back" onclick="show('home')">← Home</button>
+<div class="hero"><h1>🎯 Weak Topics</h1><p>Topics with the most mistakes appear first.</p></div>
+<div id="weakList"></div>
+</section>
+
+<section id="rapidPanel" class="panel">
+<button class="ghost back" onclick="show('home')">← Home</button>
+<div class="hero"><h1>⚡ Rapid Revision</h1><p>Short, exam-focused recall points.</p></div>
+<div id="rapidList"></div>
+</section>
+
+
+
+<section id="libraryPanel" class="panel">
+<button class="ghost back" onclick="show('home')">← Home</button>
+<div class="hero">
+<h1>📚 Study Library</h1>
+<p>Your source material is stored beside the website and can be read directly in the browser.</p>
+</div>
+<div class="card">
+<h2 style="margin-top:0">🧬 Biochemistry</h2>
+<p class="muted">ARISE Medical Academy — QRP/FTR PDF</p>
+<div class="row" style="margin-top:12px">
+<button onclick="openPdf()">📖 Read PDF</button>
+<a href="biochemistry.pdf" target="_blank" rel="noopener"><button class="ghost" type="button">↗ Open full screen</button></a>
+</div>
+</div>
+<div id="pdfViewer" class="card hide" style="margin-top:12px;padding:8px">
+<div class="row" style="margin:0 0 8px">
+<button class="ghost" onclick="closePdf()">Close PDF</button>
+<a href="biochemistry.pdf" target="_blank" rel="noopener"><button class="ghost" type="button">Open in browser</button></a>
+</div>
+<iframe src="biochemistry.pdf" title="Biochemistry source PDF" style="width:100%;height:75vh;border:1px solid var(--line);border-radius:12px;background:white"></iframe>
+</div>
+</section>
+
+<section id="sourceNotesPanel" class="panel">
+<button class="ghost back" onclick="show('home')">← Home</button>
+<div class="hero">
+<h1>📖 Biochemistry Source Notes</h1>
+<p>High-yield points extracted from your uploaded ARISE Biochemistry QRP/FTR PDF.</p>
+</div>
+<div id="sourceNotesList"></div>
+</section>
+
+<section id="notesPanel" class="panel">
+<button class="ghost back" onclick="show('home')">← Home</button>
+<div class="hero"><h1>📝 My Notes</h1><p>Saved locally on this browser/device.</p></div>
+<textarea id="notes" rows="12" placeholder="Write your revision notes here..."></textarea>
+<div class="row" style="margin-top:9px"><button onclick="saveNotes()">Save notes</button><button class="ghost" onclick="document.getElementById('notes').value=''">Clear box</button></div>
+<p id="noteStatus" class="small muted"></p>
+</section>
+
+<section id="teachPanel" class="panel">
+<button class="ghost back" onclick="show('home')">← Home</button>
+<div class="hero"><h1 id="teachTitle">🧠 Subject Map</h1><p>High-yield topic map for planning your study.</p></div>
+<div id="teachBody"></div>
+</section>
+</div>
+
+<script>
+const subjectTopics={
+"Anatomy":["Upper limb & brachial plexus","Lower limb","Thorax","Abdomen","Pelvis & perineum","Head & neck","Neuroanatomy","Embryology"],
+"Physiology":["Cell & nerve","Muscle","Blood","Cardiovascular","Respiratory","Renal & acid-base","GIT","Endocrine","Reproductive"],
+"Biochemistry":["Carbohydrates","Lipids","Amino acids & proteins","Enzymes","Vitamins","TCA/ETC","Molecular biology","Inborn errors"],
+"Pathology":["Cell injury","Inflammation","Hemodynamics","Neoplasia","Hematology","Renal","Liver","Respiratory","GI","Endocrine"],
+"Pharmacology":["ANS","CVS","CNS","Antimicrobials","Endocrine","Autacoids","Chemotherapy","Toxicology"],
+"Microbiology":["Bacteriology","Virology","Mycology","Parasitology","Immunology","Sterilization","Vaccines"],
+"Forensic Medicine":["Injuries","Asphyxia","Poisoning","Sexual offences","Identification","Thanatology","Medicolegal"],
+"Community Medicine":["Epidemiology","Biostatistics","Screening","Vaccines","Nutrition","National programs","Health systems"],
+"Medicine":["Cardiology","Respiratory","Neurology","Nephrology","Endocrine","Gastro","Infectious disease","Rheumatology"],
+"Psychiatry":["Mood disorders","Psychosis","Anxiety","Substance use","Personality","Child psychiatry","Psychopharmacology"],
+"Dermatology":["Infections","Papulosquamous","Blistering","Connective tissue","Tumors","Drug eruptions"],
+"Radiology":["Chest imaging","Abdominal imaging","Neuroimaging","Trauma","Ultrasound","Contrast"],
+"Surgery":["Trauma","Acute abdomen","GI","Hepatobiliary","Breast","Thyroid","Vascular","Urology"],
+"Orthopedics":["Fractures","Nerve injuries","Bone tumors","Arthritis","Spine","Pediatric orthopedics"],
+"Anesthesiology":["Airway","Anesthetic drugs","Regional anesthesia","Monitoring","Shock","Perioperative emergencies"],
+"Obstetrics & Gynecology":["Labor","PPH","Hypertensive disorders","Fetal monitoring","Contraception","Infertility","Gynecologic tumors"],
+"Pediatrics":["Neonatology","Growth & development","Vaccines","Nutrition","Pediatric infections","Congenital disease"],
+"ENT":["Hearing","Vertigo","Nose & sinus","Larynx","Neck masses","Emergency ENT"],
+"Ophthalmology":["Glaucoma","Cataract","Retina","Optic nerve","Red eye","Trauma"]
+};
+const subjects=Object.keys(subjectTopics);
+
+
+const sourceNotes=[
+["Glycolysis","Glycolysis converts glucose to pyruvate in the cytoplasm. Anaerobic glycolysis converts pyruvate to lactate through lactate dehydrogenase, regenerating NAD+. Net yield is 2 ATP per glucose. The PDF highlights RBCs, exercising muscle and hypoxic tissues."],
+["TCA cycle","The TCA cycle occurs in the mitochondrial matrix. Acetyl-CoA enters the cycle; per acetyl-CoA the PDF lists 3 NADH, 1 FADH2, 1 ATP and 2 CO2."],
+["Urea cycle","The urea cycle detoxifies ammonia by converting it to urea. It occurs in the liver across mitochondria and cytosol. Key enzymes include CPS I (rate limiting), OTC, argininosuccinate synthetase, argininosuccinate lyase and arginase. CPS II is for pyrimidine synthesis and is cytosolic."],
+["Glycogen storage diseases","Cori disease: debranching enzyme deficiency. Andersen disease: branching enzyme deficiency. McArdle disease: muscle glycogen phosphorylase deficiency, with exercise intolerance, cramps and myoglobinuria. Hers disease: liver glycogen phosphorylase deficiency. Pompe disease: lysosomal acid alpha-1,4-glucosidase (acid maltase) deficiency with cardiomyopathy/muscle weakness."],
+["Lysosomal storage diseases","Tay-Sachs: hexosaminidase A deficiency, GM2 ganglioside accumulation, cherry-red macula, no hepatosplenomegaly. Gaucher: glucocerebrosidase deficiency, hepatosplenomegaly, bone pain and crumpled tissue-paper macrophages. Fabry: alpha-galactosidase A deficiency, angiokeratomas and acroparesthesias. Krabbe: galactocerebrosidase deficiency with peripheral neuropathy and globoid cells. Niemann-Pick: sphingomyelinase deficiency with hepatosplenomegaly and cherry-red spot."],
+["Amino acids & inborn errors","Homocystinuria: cystathionine beta-synthase deficiency, downward lens displacement and thromboembolic risk. MSUD: branched-chain alpha-ketoacid dehydrogenase deficiency; maple/burnt-sugar urine odor. Cystinuria: impaired renal reabsorption of cysteine, ornithine, lysine and arginine (COLA). Branched-chain amino acids are leucine, isoleucine and valine."],
+["ETC & toxins","The PDF places the ETC in the inner mitochondrial membrane. Cyanide inhibits complex IV (cytochrome c oxidase); hydroxycobalamin or sodium thiosulfate are listed for treatment. ETC uncouplers listed include 2,4-DNP, high-dose aspirin and thermogenin."],
+["Collagen & molecular biology","Collagen has a Gly-X-Y repeating structure; glycine is the most common amino acid and occurs every third residue. The PDF also notes disulfide bonds as resistant to denaturation and peptidyl transferase as a ribozyme activity of the ribosome."],
+["Heme & selected high-yield facts","Lead poisoning affects ALA dehydratase and ferrochelatase. Raw egg white avidin can cause biotin deficiency with dermatitis, alopecia and conjunctivitis. Vitamin B12 deficiency raises methylmalonic acid and homocysteine. HMG-CoA reductase is the rate-limiting enzyme in cholesterol synthesis."],
+["Purine metabolism","The PDF lists purine degradation through hypoxanthine and xanthine to uric acid. Humans lack uricase (urate oxidase), which would convert uric acid to allantoin."]
+];
+
+function renderSourceNotes(){
+  const box=document.getElementById("sourceNotesList");
+  box.innerHTML=sourceNotes.map((n,i)=>`
+    <article class="card" style="margin-bottom:10px">
+      <h3>${i+1}. ${n[0]}</h3>
+      <p>${n[1]}</p>
+    </article>`).join("");
+}
+
+const qs=[
+["Biochemistry","Glycolysis","Anaerobic glycolysis converts pyruvate to:",["Acetyl-CoA","Lactate","Oxaloacetate","Citrate"],1,"Lactate dehydrogenase converts pyruvate to lactate and regenerates NAD+ so glycolysis can continue. The uploaded notes highlight RBCs, exercising muscle and hypoxic tissue."],
+["Biochemistry","Glycolysis","Net ATP yield of anaerobic glycolysis per glucose is:",["1 ATP","2 ATP","4 ATP","8 ATP"],1,"Anaerobic glycolysis yields a net 2 ATP per glucose."],
+["Biochemistry","TCA","The TCA cycle occurs primarily in the:",["Cytoplasm","Mitochondrial matrix","Nucleus","Rough ER"],1,"The uploaded notes place the TCA cycle in the mitochondrial matrix."],
+["Biochemistry","TCA","Per acetyl-CoA, the TCA cycle produces:",["1 NADH, 3 FADH2, 1 ATP","3 NADH, 1 FADH2, 1 ATP and 2 CO2","2 NADH, 2 FADH2 and 2 ATP","4 NADH only"],1,"Per acetyl-CoA: 3 NADH, 1 FADH2, 1 ATP and 2 CO2."],
+["Biochemistry","Urea cycle","The rate-limiting enzyme of the urea cycle is:",["CPS I","CPS II","Arginase","OTC"],0,"CPS I is the key rate-limiting enzyme of the urea cycle and is located in mitochondria."],
+["Biochemistry","Urea cycle","CPS II is involved mainly in:",["Urea synthesis","Pyrimidine synthesis","Fatty acid oxidation","TCA cycle"],1,"CPS II participates in pyrimidine synthesis and is cytosolic, unlike mitochondrial CPS I."],
+["Biochemistry","Fatty acid synthesis","Palmitic acid is a:",["16-carbon saturated fatty acid","18-carbon polyunsaturated fatty acid","12-carbon ketone","20-carbon amino acid"],0,"Palmitic acid is a 16-carbon saturated fatty acid."],
+["Biochemistry","Amino acids","Which group consists of branched-chain amino acids?",["Glycine, alanine, serine","Leucine, isoleucine, valine","Lysine, arginine, histidine","Aspartate, glutamate, asparagine"],1,"BCAA = leucine, isoleucine and valine."],
+["Biochemistry","Homocystinuria","Classic homocystinuria is due to deficiency of:",["Cystathionine beta-synthase","Phenylalanine hydroxylase","Homogentisate oxidase","Aldolase B"],0,"Classic homocystinuria is associated with cystathionine beta-synthase deficiency and elevated homocysteine."],
+["Biochemistry","Homocystinuria","A classic feature favoring homocystinuria over Marfan syndrome is:",["Downward lens displacement","Upward lens displacement","No thromboembolism","Autosomal dominant inheritance"],0,"The uploaded notes contrast downward ectopia lentis in homocystinuria with upward displacement in Marfan syndrome."],
+["Biochemistry","MSUD","Maple syrup urine disease is caused by deficiency of:",["Branched-chain alpha-ketoacid dehydrogenase","Glucose-6-phosphatase","Hexosaminidase A","Acid maltase"],0,"MSUD is due to deficiency of the branched-chain alpha-ketoacid dehydrogenase complex."],
+["Biochemistry","Cystinuria","Cystinuria involves impaired renal tubular reabsorption of:",["COLA amino acids","Only glycine","Only methionine","Only phenylalanine"],0,"COLA = cysteine, ornithine, lysine and arginine."],
+["Biochemistry","Lysosomal storage","Tay-Sachs disease is due to deficiency of:",["Hexosaminidase A","Glucocerebrosidase","Sphingomyelinase","Alpha-galactosidase A"],0,"Tay-Sachs = hexosaminidase A deficiency with GM2 ganglioside accumulation."],
+["Biochemistry","Lysosomal storage","Which lysosomal storage disease classically has hepatosplenomegaly and crumpled tissue-paper macrophages?",["Tay-Sachs","Gaucher","Fabry","Krabbe"],1,"Gaucher disease is associated with glucocerebrosidase deficiency and tissue-paper macrophages."],
+["Biochemistry","Lysosomal storage","Fabry disease is due to deficiency of:",["Alpha-galactosidase A","Galactocerebrosidase","Hexosaminidase A","Iduronate-2-sulfatase"],0,"Fabry = alpha-galactosidase A deficiency; angiokeratomas and acroparesthesias are classic clues."],
+["Biochemistry","Lysosomal storage","Niemann-Pick disease is associated with deficiency of:",["Sphingomyelinase","Glucocerebrosidase","Acid maltase","Phenylalanine hydroxylase"],0,"Niemann-Pick is associated with sphingomyelinase deficiency and can cause hepatosplenomegaly and a cherry-red spot."],
+["Biochemistry","Mucopolysaccharidosis","Hunter syndrome is inherited as:",["Autosomal dominant","Autosomal recessive","X-linked recessive","Mitochondrial"],2,"Hunter syndrome is X-linked recessive and is caused by iduronate-2-sulfatase deficiency."],
+["Biochemistry","Mucopolysaccharidosis","Which feature helps distinguish Hurler syndrome from Hunter syndrome?",["Corneal clouding","X-linked inheritance","Aggressive behavior only","Absence of developmental delay"],0,"Hurler syndrome classically has corneal clouding; Hunter classically lacks it."],
+["Biochemistry","Galactosemia","Classic galactosemia is due to deficiency of:",["GALT","Lactase","Aldolase B","Fructokinase"],0,"Classic galactosemia = galactose-1-phosphate uridyltransferase (GALT) deficiency."],
+["Biochemistry","Galactosemia","The cataract in classic galactosemia is caused mainly by accumulation of:",["Galactitol","Urea","Uric acid","Homogentisic acid"],0,"Galactitol is osmotically active and causes lens swelling and cataract; the notes describe it as reversible."],
+["Biochemistry","Fructose disorders","Hereditary fructose intolerance is caused by deficiency of:",["Fructokinase","Aldolase B","GALT","Lactase"],1,"Hereditary fructose intolerance = aldolase B deficiency and can cause hypoglycemia after fructose ingestion."],
+["Biochemistry","Fructose disorders","Essential fructosuria is due to deficiency of:",["Aldolase B","Fructokinase","G6PD","Pyruvate kinase"],1,"Essential fructosuria is a benign disorder caused by fructokinase deficiency."],
+["Biochemistry","PKU","Phenylketonuria is caused by deficiency of:",["Phenylalanine hydroxylase","Homogentisate oxidase","Cystathionine beta-synthase","Uroporphyrinogen decarboxylase"],0,"Classic PKU = phenylalanine hydroxylase deficiency; the notes mention newborn screening and phenylalanine restriction."],
+["Biochemistry","Alkaptonuria","Alkaptonuria is caused by deficiency of:",["Homogentisate oxidase","GALT","Hexosaminidase A","CPS I"],0,"Alkaptonuria causes homogentisic acid accumulation, dark urine on standing and ochronosis."],
+["Biochemistry","Porphyria","Porphyria cutanea tarda is associated with deficiency of:",["Uroporphyrinogen decarboxylase","ALA dehydratase","Hexosaminidase A","Arginase"],0,"The uploaded notes identify uroporphyrinogen decarboxylase deficiency as the cause of porphyria cutanea tarda."],
+["Biochemistry","Collagen","The most common amino acid in collagen is:",["Glycine","Tryptophan","Methionine","Tyrosine"],0,"Glycine occurs at every third residue in collagen and is essential for its tight triple-helix packing."],
+["Biochemistry","ETC","Cyanide inhibits which ETC complex?",["Complex I","Complex II","Complex III","Complex IV"],3,"Cyanide inhibits complex IV (cytochrome c oxidase). Hydroxycobalamin or sodium thiosulfate are antidotal options."],
+["Biochemistry","ETC","Which is an ETC uncoupler listed in the uploaded notes?",["Oligomycin","2,4-Dinitrophenol","Rotenone","Antimycin A"],1,"DNP is an uncoupler; high-dose aspirin and thermogenin are also listed as uncouplers."],
+["Biochemistry","GSD","McArdle disease is due to deficiency of:",["Muscle glycogen phosphorylase","Liver glycogen phosphorylase","Branching enzyme","Debranching enzyme"],0,"GSD V (McArdle) = muscle glycogen phosphorylase deficiency; exercise intolerance, cramps and myoglobinuria are classic."],
+["Biochemistry","GSD","Pompe disease is caused by deficiency of:",["Acid alpha-1,4-glucosidase (acid maltase)","G6-phosphatase","Muscle phosphorylase","Branching enzyme"],0,"Pompe disease (GSD II) is a lysosomal acid alpha-1,4-glucosidase deficiency and may cause cardiomyopathy."],
+["Biochemistry","GSD","Cori disease is due to deficiency of:",["Debranching enzyme","Branching enzyme","Glucose-6-phosphatase","Muscle phosphorylase"],0,"Cori disease (GSD III) involves debranching enzyme deficiency."],
+["Biochemistry","GSD","Andersen disease is caused by deficiency of:",["Branching enzyme","Debranching enzyme","Acid maltase","Liver phosphorylase"],0,"Andersen disease (GSD IV) is due to branching enzyme deficiency and can lead to cirrhosis."],
+["Biochemistry","GSD","Hers disease is due to deficiency of:",["Liver glycogen phosphorylase","Muscle glycogen phosphorylase","G6-phosphatase","Branching enzyme"],0,"Hers disease (GSD VI) involves liver glycogen phosphorylase deficiency."],
+["Biochemistry","G6PD","The rate-limiting enzyme of the HMP shunt is:",["G6PD","PFK-1","Pyruvate kinase","CPS I"],0,"Glucose-6-phosphate dehydrogenase is the rate-limiting enzyme of the pentose phosphate pathway and supplies NADPH."],
+["Biochemistry","G6PD","NADPH in RBCs is especially important for:",["Reducing glutathione","Making urea","Making bile salts","Making collagen"],0,"NADPH maintains reduced glutathione, protecting RBCs from oxidative stress."],
+["Biochemistry","PDH","Which is NOT one of the five classic cofactors of pyruvate dehydrogenase?",["TPP","Lipoic acid","CoA","Biotin"],3,"PDH requires TPP, lipoic acid, CoA, FAD and NAD+."],
+["Biochemistry","Protein synthesis","Peptidyl transferase activity is associated with the:",["Ribosome","Lysosome","Peroxisome","Golgi apparatus"],0,"Peptidyl transferase catalyzes peptide-bond formation during translation and is a ribozyme activity of the ribosome."]
+];
+
+const rapid=[
+["Biochemistry","B12 deficiency → ↑ methylmalonic acid + ↑ homocysteine."],
+["Biochemistry","PFK-1 = rate-limiting enzyme of glycolysis."],
+["Biochemistry","Von Gierke = glucose-6-phosphatase deficiency."],
+["Anatomy","Corneal reflex: V1 afferent, VII efferent."],
+["Physiology","SA node = normal cardiac pacemaker."],
+["Pathology","Virchow triad = endothelial injury + abnormal flow + hypercoagulability."],
+["Pharmacology","N-acetylcysteine = acetaminophen antidote."],
+["Microbiology","IgG crosses placenta."],
+["OBG","PPH: 4 Ts = Tone, Tissue, Trauma, Thrombin."],
+["Community Medicine","Sensitivity = TP/(TP+FN)."],
+["Surgery","Trauma primary survey = ABCDE."],
+["ENT","Rinne compares air conduction with bone conduction."],
+["Ophthalmology","Acute angle closure = painful red eye + mid-dilated pupil."]
+];
+
+let stats=JSON.parse(localStorage.fmgeV2Stats||'{"a":0,"c":0,"w":0,"miss":{}}');
+let currentList=[...qs], currentIndex=0, answeredThis=0, weakOnly=false;
+
+function save(){localStorage.fmgeV2Stats=JSON.stringify(stats)}
+function updateStats(){document.getElementById("attempted").textContent=stats.a;document.getElementById("mastered").textContent=stats.c;document.getElementById("wrongCount").textContent=stats.w;document.getElementById("accuracy").textContent=stats.a?Math.round(stats.c/stats.a*100)+"%":"0%"}
+function show(id){document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");window.scrollTo(0,0)}
+function renderSubjects(){
+document.getElementById("subjectGrid").innerHTML=subjects.map(s=>`<div class="card click subject" onclick="teach('${s}')"><div><h3>${s}</h3><p>${subjectTopics[s].slice(0,4).join(" • ")}</p></div><span class="pill">Open</span></div>`).join("");
+}
+function teach(s){
+show("teachPanel");document.getElementById("teachTitle").textContent="🧠 "+s;
+document.getElementById("teachBody").innerHTML=`<div class="card"><h3>High-yield topic map</h3>${subjectTopics[s].map((t,i)=>`<div class="topic"><b>${i+1}. ${t}</b><span class="muted small">Study core concepts → classic associations → clinical presentation → investigations → management → MCQs.</span></div>`).join("")}</div>`;
+}
+function fillFilters(){
+let sf=document.getElementById("subjectFilter");sf.innerHTML='<option value="ALL">All subjects</option>'+subjects.map(s=>`<option>${s}</option>`).join("");
+let tf=document.getElementById("topicFilter");tf.innerHTML='<option value="ALL">All topics</option>';
+subjects.forEach(s=>subjectTopics[s].forEach(t=>tf.innerHTML+=`<option>${s} — ${t}</option>`));
+}
+function applyFilter(){
+let s=document.getElementById("subjectFilter").value,t=document.getElementById("topicFilter").value;
+currentList=qs.filter(x=>(s==="ALL"||x[0]===s)&&(t==="ALL"||`${x[0]} — ${x[1]}`===t));
+if(weakOnly)currentList=currentList.filter(x=>(stats.miss[x[0]+"|"+x[1]]||0)>0);
+if(!currentList.length){document.getElementById("qtext").textContent="No questions match this filter yet.";document.getElementById("opts").innerHTML="";document.getElementById("feedback").innerHTML='<div class="explain">Try another filter or answer some questions first.</div>';return}
+currentIndex=Math.floor(Math.random()*currentList.length);renderQ();
+}
+function openMCQ(){show("mcqPanel");weakOnly=false;document.getElementById("subjectFilter").value="ALL";document.getElementById("topicFilter").value="ALL";applyFilter()}
+function renderQ(){
+let x=currentList[currentIndex];document.getElementById("qmeta").innerHTML=`<span class="badge">${x[0]}</span> <span class="badge">${x[1]}</span> &nbsp; Question ${currentIndex+1}/${currentList.length}`;
+document.getElementById("qbar").style.width=((currentIndex+1)/currentList.length*100)+"%";document.getElementById("qtext").textContent=x[2];document.getElementById("feedback").innerHTML="";document.getElementById("nextBtn").classList.add("hide");
+document.getElementById("opts").innerHTML=x[3].map((o,i)=>`<button class="option" onclick="answer(${i})">${String.fromCharCode(65+i)}. ${o}</button>`).join("");
+}
+function answer(i){
+let x=currentList[currentIndex],bs=[...document.querySelectorAll("#opts .option")];bs.forEach(b=>b.disabled=true);bs[x[4]].classList.add("correct");
+stats.a++;if(i===x[4])stats.c++;else{stats.w++;let k=x[0]+"|"+x[1];stats.miss[k]=(stats.miss[k]||0)+1;bs[i].classList.add("wrong")}
+save();updateStats();
+document.getElementById("feedback").innerHTML=`<div class="explain"><b class="${i===x[4]?'good':'danger'}">${i===x[4]?'Correct!':'Incorrect'}</b><br><b>Why:</b> ${x[5]}<br><span class="small muted">Exam pearl: Don't memorize the option alone—remember the association.</span></div>`;
+document.getElementById("nextBtn").classList.remove("hide");
+}
+function nextQ(){currentIndex=(currentIndex+1)%currentList.length;renderQ()}
+function shuffleCurrent(){if(!currentList.length)return;currentIndex=Math.floor(Math.random()*currentList.length);renderQ()}
+function renderWeak(){
+let entries=Object.entries(stats.miss).sort((a,b)=>b[1]-a[1]);let el=document.getElementById("weakList");
+if(!entries.length){el.innerHTML='<div class="card"><h3>No weak topics yet 🎉</h3><p>Start the MCQ trainer. Incorrect answers will automatically appear here.</p></div>';return}
+el.innerHTML=entries.map(([k,n])=>{let [s,t]=k.split("|");return `<div class="card" style="margin-bottom:9px"><span class="badge">${s}</span><h3 style="margin-top:8px">${t}</h3><p class="danger">${n} mistake${n>1?'s':''}</p><button onclick="practiceWeak('${s.replace(/'/g,"\\'")}','${t.replace(/'/g,"\\'")}')">Practice</button></div>`}).join("");
+}
+function practiceWeak(s,t){show("mcqPanel");document.getElementById("subjectFilter").value=s;document.getElementById("topicFilter").value=s+" — "+t;weakOnly=false;applyFilter()}
+function renderRapid(){document.getElementById("rapidList").innerHTML=rapid.map(x=>`<div class="card fact"><span class="badge">${x[0]}</span><p style="margin-top:7px;color:#d9e2f2">${x[1]}</p></div>`).join("")}
+function saveNotes(){localStorage.fmgeNotesV2=document.getElementById("notes").value;document.getElementById("noteStatus").textContent="Saved on this device.";setTimeout(()=>document.getElementById("noteStatus").textContent="",1800)}
+function resetAll(){if(confirm("Reset FMGE Master progress and notes?")){localStorage.removeItem("fmgeV2Stats");localStorage.removeItem("fmgeNotesV2");stats={a:0,c:0,w:0,miss:{}};document.getElementById("notes").value="";updateStats();renderWeak()}}
+
+function openPdf(){document.getElementById("pdfViewer").classList.remove("hide");document.getElementById("pdfViewer").scrollIntoView({behavior:"smooth"});}
+function closePdf(){document.getElementById("pdfViewer").classList.add("hide");}
+
+document.getElementById("notes").value=localStorage.fmgeNotesV2||"";
+renderSubjects();fillFilters();renderRapid();updateStats();applyFilter();
+</script>
+</body>
+</html>
