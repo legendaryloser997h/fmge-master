@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020">
+<title>FMGE Master v4</title>
+<style>
+:root{--bg:#080d19;--card:#121a2b;--card2:#18233a;--text:#f5f7ff;--muted:#9aa8c2;--accent:#70a7ff;--good:#4ade80;--bad:#fb7185;--line:#293752}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(160deg,#070b14,#101a2d);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.app{max-width:950px;margin:auto;padding:16px 14px 70px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px}
+.brand{font-size:24px;font-weight:850}.brand span{color:var(--accent)}
+button{border:0;border-radius:12px;padding:11px 14px;background:var(--accent);color:#07101f;font-weight:750;cursor:pointer}
+button.ghost{background:var(--card2);border:1px solid var(--line);color:var(--text)}
+button:disabled{opacity:.55;cursor:not-allowed}
+.hero,.card{background:var(--card);border:1px solid var(--line);border-radius:18px}
+.hero{padding:19px;margin-bottom:14px}.hero h1{margin:0 0 6px;font-size:27px}.hero p{margin:0;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:15px}
+.stat{background:#0c1425;border:1px solid var(--line);border-radius:13px;padding:11px}.stat b{display:block;font-size:20px}.stat small{color:var(--muted)}
+.section{margin-top:17px}.section h2{font-size:18px;margin:0 0 10px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.card{padding:14px}.click{cursor:pointer}.card h3{margin:0 0 5px}.card p{margin:0;color:var(--muted);font-size:13px;line-height:1.5}
+.subject{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.panel{display:none}.panel.active{display:block}.back{margin-bottom:10px}
+.row,.toolbar{display:flex;gap:8px;flex-wrap:wrap}.toolbar{margin-bottom:12px}
+.select,input,textarea{width:100%;background:#0c1424;color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit}
+.toolbar .select{flex:1;min-width:150px}
+.question{font-size:19px;line-height:1.5;margin:12px 0}.options{display:grid;gap:9px}
+.option{text-align:left;background:var(--card2);color:var(--text);border:1px solid var(--line);width:100%}
+.option.correct{background:#103521;border-color:var(--good)}.option.wrong{background:#381824;border-color:var(--bad)}
+.explain{margin-top:13px;padding:13px;border-left:3px solid var(--accent);background:#0d1627;border-radius:10px;line-height:1.55}
+.progress{height:7px;background:#202b40;border-radius:20px;overflow:hidden}.bar{height:100%;background:var(--accent);width:0}
+.topic{margin-top:8px;padding:11px;background:#0d1526;border:1px solid var(--line);border-radius:11px}
+.topic b{display:block;margin-bottom:3px}.danger{color:var(--bad)}.good{color:var(--good)}.muted{color:var(--muted)}
+.hide{display:none!important}.small{font-size:12px}.badge{display:inline-block;padding:4px 7px;border-radius:8px;background:#26334f;font-size:11px;color:#c8d7ef}
+.ai-answer{white-space:normal;line-height:1.6}.ai-answer h3{margin-bottom:6px}
+@media(max-width:650px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top">
+<div class="brand">FMGE <span>MASTER v4</span></div>
+<button class="ghost" id="resetBtn">Reset progress</button>
+</div>
+
+<section id="home" class="panel active">
+<div class="hero">
+<h1>Learn → Test → Fix → Revise</h1>
+<p>Your FMGE command center. Progress is stored on this device. <span class="badge">19 subjects</span></p>
+<div class="stats">
+<div class="stat"><b id="accuracy">0%</b><small>Accuracy</small></div>
+<div class="stat"><b id="attempted">0</b><small>Attempted</small></div>
+<div class="stat"><b id="wrongCount">0</b><small>Wrong</small></div>
+<div class="stat"><b id="mastered">0</b><small>Correct</small></div>
+</div>
+</div>
+
+<div class="section"><h2>Modes</h2><div class="grid">
+<div class="card click" data-open="mcqPanel"><h3>❓ MCQ Trainer</h3><p>Subject/topic filtering, explanations and weak-topic tracking.</p></div>
+<div class="card click" data-open="weakPanel"><h3>🎯 Weak Topics</h3><p>Re-test concepts you miss most.</p></div>
+<div class="card click" data-open="rapidPanel"><h3>⚡ Rapid Revision</h3><p>Classic FMGE associations and traps.</p></div>
+<div class="card click" data-open="notesPanel"><h3>📝 Notes</h3><p>Personal notes stored locally.</p></div>
+<div class="card click" data-open="sourceNotesPanel"><h3>📖 Source Notes</h3><p>High-yield notes.</p></div>
+<div class="card click" data-open="libraryPanel"><h3>📚 Study Library</h3><p>Open your Biochemistry PDF if uploaded beside this file.</p></div>
+<div class="card click" data-open="aiPanel"><h3>🤖 AI Tutor</h3><p>Ask questions and get FMGE-focused explanations.</p></div>
+</div></div>
+
+<div class="section"><h2>19 FMGE subjects</h2><div id="subjectGrid" class="grid"></div></div>
+</section>
+
+<section id="mcqPanel" class="panel">
+<button class="ghost back" data-home>← Home</button>
+<div class="hero"><h1>❓ MCQ Trainer</h1><p>Answer first. Explanation appears after you commit.</p></div>
+<div class="toolbar">
+<select id="subjectFilter" class="select"></select>
+<select id="topicFilter" class="select"></select>
+<button class="ghost" id="weakToggle">Weak only</button>
+</div>
+<div class="card">
+<div id="qmeta" class="small muted"></div><div class="progress"><div id="qbar" class="bar"></div></div>
+<div id="qtext" class="question"></div><div id="opts" class="options"></div><div id="feedback"></div>
+<div class="row" style="margin-top:13px"><button id="nextBtn" class="hide">Next →</button><button id="shuffleBtn" class="ghost">New question</button></div>
+</div>
+</section>
+
+<section id="weakPanel" class="panel">
+<button class="ghost back" data-home>← Home</button>
+<div class="hero"><h1>🎯 Weak Topics</h1><p>Topics with the most mistakes appear first.</p></div>
+<div id="weakList"></div>
+</section>
+
+<section id="rapidPanel" class="panel">
+<button class="ghost back" data-home>← Home</button>
+<div class="hero"><h1>⚡ Rapid Revision</h1><p>Short, exam-focused recall points.</p></div>
+<div id="rapidList"></div>
+</section>
+
+<section id="sourceNotesPanel" class="panel">
+<button class="ghost back" data-home>← Home</button>
+<div class="hero"><h1>📖 High-Yield Source Notes</h1><p>FMGE-focused Biochemistry revision.</p></div>
+<div id="sourceNotesList"></div>
+</section>
+
+<section id="libraryPanel" class="panel">
+<button class="ghost back" data-home>← Home</button>
+<div class="hero"><h1>📚 Study Library</h1><p>If <b>biochemistry.pdf</b> is beside index.html, it can be opened here.</p></div>
+<div class="card">
+<h2>🧬 Biochemistry</h2>
+<p class="muted">ARISE Medical Academy — QRP/FTR PDF</p>
+<div class="row" style="margin-top:12px">
+<button id="openPdfBtn">📖 Read PDF</button>
+<a href="biochemistry.pdf" target="_blank" rel="noopener"><button class="ghost" type="button">↗ Open</button></a>
+</div>
+</div>
+<div id="pdfViewer" class="card hide" style="margin-top:12px;padding:8px">
+<div class="row" style="margin:0 0 8px"><button class="ghost" id="closePdfBtn">Close PDF</button></div>
+<iframe src="biochemistry.pdf" title="Biochemistry source PDF" style="width:100%;height:75vh;border:1px solid var(--line);border-radius:12px;background:white"></iframe>
+</div>
+</section>
+
+<section id="notesPanel" class="panel">
+<button class="ghost back" data-home>← Home</button>
+<div class="hero"><h1>📝 My Notes</h1><p>Saved locally on this browser/device.</p></div>
+<textarea id="notes" rows="12" placeholder="Write your revision notes here..."></textarea>
+<div class="row" style="margin-top:9px"><button id="saveNotesBtn">Save notes</button><button class="ghost" id="clearNotesBtn">Clear box</button></div>
+<p id="noteStatus" class="small muted"></p>
+</section>
+
+<section id="aiPanel" class="panel">
+<button class="ghost back" data-home>← Home</button>
+<div class="hero"><h1>🤖 FMGE AI Tutor</h1><p>Ask FMGE Master AI any medical question.</p></div>
+<div class="card">
+<div class="toolbar">
+<select id="aiMode" class="select"><option value="quick">⚡ Quick Recall</option><option value="standard">📚 Standard</option><option value="deep">🧠 Deep Explanation</option></select>
+<select id="aiSource" class="select"><option value="general">🌐 General Medical Knowledge</option><option value="fmge">🎯 FMGE Exam Focus</option></select>
+</div>
+<textarea id="aiQuestion" rows="5" placeholder="Example: What enzyme is inhibited by cyanide?"></textarea>
+<div class="row" style="margin-top:10px">
+<button id="askAiBtn">🧠 Ask FMGE Master</button>
+<button class="ghost" id="clearAiBtn">Clear</button>
+</div>
+<p id="aiStatus" class="small muted"></p>
+<div id="aiAnswer" class="card hide" style="margin-top:12px;background:#0d1627">
+<div class="ai-answer" id="aiAnswerText"></div>
+</div>
+</div>
+</section>
+</div>
+
+<script>
+"use strict";
+
+const subjectTopics={
+"Anatomy":["Upper limb & brachial plexus","Lower limb","Thorax","Abdomen","Pelvis & perineum","Head & neck","Neuroanatomy","Embryology"],
+"Physiology":["Cell & nerve","Muscle","Blood","Cardiovascular","Respiratory","Renal & acid-base","GIT","Endocrine","Reproductive"],
+"Biochemistry":["Carbohydrates","Lipids","Amino acids & proteins","Enzymes","Vitamins","TCA/ETC","Molecular biology","Inborn errors"],
+"Pathology":["Cell injury","Inflammation","Hemodynamics","Neoplasia","Hematology","Renal","Liver","Respiratory","GI","Endocrine"],
+"Pharmacology":["ANS","CVS","CNS","Antimicrobials","Endocrine","Autacoids","Chemotherapy","Toxicology"],
+"Microbiology":["Bacteriology","Virology","Mycology","Parasitology","Immunology","Sterilization","Vaccines"],
+"Forensic Medicine":["Injuries","Asphyxia","Poisoning","Sexual offences","Identification","Thanatology","Medicolegal"],
+"Community Medicine":["Epidemiology","Biostatistics","Screening","Vaccines","Nutrition","National programs","Health systems"],
+"Medicine":["Cardiology","Respiratory","Neurology","Nephrology","Endocrine","Gastro","Infectious disease","Rheumatology"],
+"Psychiatry":["Mood disorders","Psychosis","Anxiety","Substance use","Personality","Child psychiatry","Psychopharmacology"],
+"Dermatology":["Infections","Papulosquamous","Blistering","Connective tissue","Tumors","Drug eruptions"],
+"Radiology":["Chest imaging","Abdominal imaging","Neuroimaging","Trauma","Ultrasound","Contrast"],
+"Surgery":["Trauma","Acute abdomen","GI","Hepatobiliary","Breast","Thyroid","Vascular","Urology"],
+"Orthopedics":["Fractures","Nerve injuries","Bone tumors","Arthritis","Spine","Pediatric orthopedics"],
+"Anesthesiology":["Airway","Anesthetic drugs","Regional anesthesia","Monitoring","Shock","Perioperative emergencies"],
+"Obstetrics & Gynecology":["Labor","PPH","Hypertensive disorders","Fetal monitoring","Contraception","Infertility","Gynecologic tumors"],
+"Pediatrics":["Neonatology","Growth & development","Vaccines","Nutrition","Pediatric infections","Congenital disease"],
+"ENT":["Hearing","Vertigo","Nose & sinus","Larynx","Neck masses","Emergency ENT"],
+"Ophthalmology":["Glaucoma","Cataract","Retina","Optic nerve","Red eye","Trauma"]
+};
+const subjects=Object.keys(subjectTopics);
+
+const sourceNotes=[
+["Glycolysis","Glycolysis occurs in the cytoplasm and converts glucose to pyruvate. Anaerobic glycolysis converts pyruvate to lactate through lactate dehydrogenase and regenerates NAD+. Net yield is 2 ATP per glucose."],
+["TCA cycle","The TCA cycle occurs mainly in the mitochondrial matrix. Per acetyl-CoA: 3 NADH, 1 FADH2, 1 GTP/ATP and 2 CO2."],
+["Urea cycle","The urea cycle occurs in liver mitochondria and cytosol. CPS I is the rate-limiting enzyme. OTC, argininosuccinate synthetase, argininosuccinate lyase and arginase complete the pathway."],
+["Glycogen storage diseases","Cori: debranching enzyme. Andersen: branching enzyme. McArdle: muscle glycogen phosphorylase. Hers: liver glycogen phosphorylase. Pompe: lysosomal acid alpha-1,4-glucosidase."],
+["Lysosomal storage diseases","Tay-Sachs: hexosaminidase A. Gaucher: glucocerebrosidase. Fabry: alpha-galactosidase A. Krabbe: galactocerebrosidase. Niemann-Pick: sphingomyelinase."],
+["Amino acids","Homocystinuria: cystathionine beta-synthase deficiency. MSUD: branched-chain alpha-ketoacid dehydrogenase deficiency. Cystinuria affects COLA: cysteine, ornithine, lysine and arginine."],
+["ETC & toxins","Cyanide, CO, azide and H2S inhibit Complex IV, cytochrome c oxidase. Oligomycin inhibits ATP synthase. DNP and high-dose salicylates act as uncouplers."],
+["Vitamins","B12 deficiency increases methylmalonic acid and homocysteine. Biotin deficiency can cause dermatitis, alopecia and conjunctivitis. Vitamin deficiencies are frequent FMGE association questions."],
+["Heme","Lead inhibits ALA dehydratase and ferrochelatase. Porphyria questions commonly test the pathway, enzyme defects and urine findings."],
+["Purines","Purine degradation proceeds through hypoxanthine and xanthine to uric acid. Humans lack uricase, so uric acid is the final product."]
+];
+
+const qs=[
+["Biochemistry","ETC","Cyanide primarily inhibits which enzyme?",["Complex I","Cytochrome c oxidase (Complex IV)","Succinate dehydrogenase","ATP synthase"],1,"Cyanide inhibits cytochrome c oxidase, Complex IV, blocking the final transfer of electrons to oxygen."],
+["Biochemistry","Glycolysis","Anaerobic glycolysis converts pyruvate to:",["Acetyl-CoA","Lactate","Oxaloacetate","Citrate"],1,"Lactate dehydrogenase converts pyruvate to lactate and regenerates NAD+."],
+["Biochemistry","Glycolysis","Net ATP yield of anaerobic glycolysis per glucose is:",["1 ATP","2 ATP","4 ATP","8 ATP"],1,"The net yield is 2 ATP per glucose."],
+["Biochemistry","TCA","The TCA cycle occurs primarily in the:",["Cytoplasm","Mitochondrial matrix","Nucleus","Rough ER"],1,"The TCA cycle occurs mainly in the mitochondrial matrix."],
+["Biochemistry","TCA","Per acetyl-CoA, the TCA cycle produces:",["1 NADH, 3 FADH2, 1 ATP","3 NADH, 1 FADH2, 1 GTP/ATP and 2 CO2","2 NADH, 2 FADH2 and 2 ATP","4 NADH only"],1,"Per acetyl-CoA: 3 NADH, 1 FADH2, 1 GTP/ATP and 2 CO2."],
+["Biochemistry","Urea cycle","The rate-limiting enzyme of the urea cycle is:",["CPS I","CPS II","Arginase","OTC"],0,"CPS I is the key rate-limiting enzyme of the urea cycle."],
+["Biochemistry","Urea cycle","CPS II is involved mainly in:",["Urea synthesis","Pyrimidine synthesis","Fatty acid oxidation","TCA cycle"],1,"CPS II participates in pyrimidine synthesis and is cytosolic."],
+["Biochemistry","Amino acids","Which group consists of branched-chain amino acids?",["Glycine, alanine, serine","Leucine, isoleucine, valine","Lysine, arginine, histidine","Aspartate, glutamate, asparagine"],1,"BCAA = leucine, isoleucine and valine."],
+["Biochemistry","Homocystinuria","Classic homocystinuria is due to deficiency of:",["Cystathionine beta-synthase","Phenylalanine hydroxylase","Homogentisate oxidase","Aldolase B"],0,"Classic homocystinuria is associated with cystathionine beta-synthase deficiency."],
+["Biochemistry","MSUD","Maple syrup urine disease is caused by deficiency of:",["Branched-chain alpha-ketoacid dehydrogenase","Glucose-6-phosphatase","Hexosaminidase A","Acid maltase"],0,"MSUD is due to deficiency of the branched-chain alpha-ketoacid dehydrogenase complex."],
+["Biochemistry","Lysosomal storage","Tay-Sachs disease is due to deficiency of:",["Hexosaminidase A","Glucocerebrosidase","Sphingomyelinase","Alpha-galactosidase A"],0,"Tay-Sachs = hexosaminidase A deficiency with GM2 ganglioside accumulation."],
+["Biochemistry","Lysosomal storage","Which disease has crumpled tissue-paper macrophages?",["Tay-Sachs","Gaucher","Fabry","Krabbe"],1,"Gaucher disease is associated with glucocerebrosidase deficiency and tissue-paper macrophages."],
+["Biochemistry","Lysosomal storage","Fabry disease is due to deficiency of:",["Alpha-galactosidase A","Galactocerebrosidase","Hexosaminidase A","Iduronate-2-sulfatase"],0,"Fabry = alpha-galactosidase A deficiency."],
+["Biochemistry","Galactosemia","Classic galactosemia is due to deficiency of:",["GALT","Lactase","Aldolase B","Fructokinase"],0,"Classic galactosemia = galactose-1-phosphate uridyltransferase deficiency."],
+["Biochemistry","Fructose disorders","Hereditary fructose intolerance is caused by deficiency of:",["Fructokinase","Aldolase B","GALT","Lactase"],1,"Hereditary fructose intolerance = aldolase B deficiency."],
+["Biochemistry","Fructose disorders","Essential fructosuria is due to deficiency of:",["Aldolase B","Fructokinase","G6PD","Pyruvate kinase"],1,"Essential fructosuria is a benign fructokinase deficiency."],
+["Biochemistry","ETC","Oligomycin inhibits:",["Complex I","Complex III","Complex IV","ATP synthase"],3,"Oligomycin blocks the F0 component of ATP synthase."],
+["Biochemistry","ETC","Which is an uncoupler of oxidative phosphorylation?",["Rotenone","Antimycin A","2,4-DNP","Oligomycin"],2,"2,4-DNP dissipates the proton gradient and increases heat production."],
+["Biochemistry","Heme","Lead poisoning inhibits which enzymes?",["ALA dehydratase and ferrochelatase","CPS I and OTC","Hexokinase and pyruvate kinase","GALT and aldolase B"],0,"Lead inhibits ALA dehydratase and ferrochelatase."],
+["Biochemistry","Vitamins","Vitamin B12 deficiency increases:",["Methylmalonic acid and homocysteine","Only uric acid","Only bilirubin","Only lactate"],0,"B12 deficiency increases both methylmalonic acid and homocysteine."],
+["Biochemistry","Collagen","The repeating sequence in collagen is:",["Gly-X-Y","Ala-Ala-Ala","Lys-Lys-Lys","Gly-Gly-Gly"],0,"Collagen has a Gly-X-Y repeating structure."],
+["Anatomy","Brachial plexus","The roots of the brachial plexus are:",["C1-C4","C5-T1","T1-T5","L1-L4"],1,"Brachial plexus roots are C5-T1."],
+["Physiology","Cardiovascular","The normal pacemaker of the heart is:",["AV node","SA node","Purkinje fibers","Bundle of His"],1,"The sinoatrial node normally initiates cardiac depolarization."],
+["Pathology","Inflammation","The predominant cell in acute bacterial inflammation is:",["Neutrophil","Eosinophil","Lymphocyte","Plasma cell"],0,"Neutrophils predominate in acute inflammation."],
+["Pharmacology","ANS","Atropine is a:",["Muscarinic antagonist","Muscarinic agonist","Beta blocker","Alpha agonist"],0,"Atropine is a competitive muscarinic receptor antagonist."],
+["Microbiology","Bacteriology","Gram-positive cocci in clusters are classically:",["Staphylococci","Streptococci","Neisseria","Vibrio"],0,"Staphylococci are gram-positive cocci arranged in clusters."],
+["Medicine","Cardiology","The most specific biomarker for myocardial injury is:",["AST","Troponin","LDH","ALP"],1,"Cardiac troponins are highly sensitive and specific for myocardial injury."],
+["Pediatrics","Neonatology","Apgar scoring is performed at:",["1 and 5 minutes","10 and 20 minutes only","30 and 60 minutes","Only at birth"],0,"Apgar scoring is routinely assessed at 1 and 5 minutes."],
+["Ophthalmology","Glaucoma","The classic visual field defect in glaucoma is:",["Bitemporal hemianopia","Progressive peripheral field loss","Central scotoma only","Monocular blindness at onset"],1,"Glaucoma classically causes progressive peripheral visual field loss."],
+["ENT","Hearing","Conductive hearing loss involves pathology of the:",["External or middle ear","Cochlea only","Auditory cortex only","Optic nerve"],0,"Conductive loss results from external or middle ear pathology."],
+["Surgery","Trauma","The first priority in trauma assessment is:",["Airway with cervical spine protection","Definitive fracture fixation","Nutrition","Discharge planning"],0,"ATLS primary survey begins with airway and cervical spine protection."],
+["Orthopedics","Fractures","The most common nerve injured in posterior shoulder dislocation is:",["Axillary nerve","Median nerve","Ulnar nerve","Radial nerve"],0,"The axillary nerve is closely related to the surgical neck of humerus and is commonly tested in shoulder trauma."],
+["Anesthesiology","Airway","The definitive airway in an unconscious patient unable to protect the airway is:",["Endotracheal intubation","Oral fluids","Nasal packing","Chest tube"],0,"Endotracheal intubation provides a protected definitive airway."],
+["Obstetrics & Gynecology","PPH","The most common cause of postpartum hemorrhage is:",["Uterine atony","DIC","Ruptured ectopic pregnancy","Cervical cancer"],0,"Uterine atony is the most common cause of primary postpartum hemorrhage."],
+["Community Medicine","Screening","A highly sensitive test is useful when the goal is to:",["Rule out disease when negative","Rule in disease when negative","Increase false negatives","Avoid screening"],0,"High sensitivity helps rule out disease when the test is negative: SnNout."],
+["Psychiatry","Mood disorders","First-line treatment for uncomplicated mild-to-moderate major depression commonly includes:",["Psychotherapy and/or antidepressant therapy","ECT for everyone","Antipsychotic monotherapy","Benzodiazepine lifelong"],0,"Psychotherapy and antidepressants are standard first-line options depending on severity and patient factors."],
+["Dermatology","Infections","A dermatophyte infection is caused by:",["Fungi","Viruses","Bacteria only","Protozoa"],0,"Dermatophytes are fungi that infect keratinized tissues."],
+["Radiology","Chest imaging","The preferred initial imaging test for many acute chest complaints is:",["Chest X-ray","PET scan for everyone","Brain MRI","DEXA"],0,"Chest radiography is a common initial imaging test for many acute chest presentations."]
+];
+
+let stats=JSON.parse(localStorage.getItem("fmgeStatsV4")||'{"attempted":0,"correct":0,"wrong":0,"weak":{}}');
+let weakOnly=false, filtered=[], currentIndex=0, answered=false;
+const FMGE_AI_URL="https://fmge-master-ai.asaneeshqwe3.workers.dev/";
+
+function $(id){return document.getElementById(id)}
+function escapeHTML(s){
+return String(s??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
+}
+function show(id){
+document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+const el=$(id); if(el) el.classList.add("active");
+window.scrollTo({top:0,behavior:"smooth"});
+if(id==="weakPanel")renderWeak();
+}
+function saveStats(){localStorage.setItem("fmgeStatsV4",JSON.stringify(stats));updateStats()}
+function updateStats(){
+const a=stats.attempted||0,c=stats.correct||0,w=stats.wrong||0;
+$("attempted").textContent=a;$("mastered").textContent=c;$("wrongCount").textContent=w;
+$("accuracy").textContent=a?Math.round(c/a*100)+"%":"0%";
+}
+function renderSubjects(){
+$("subjectGrid").innerHTML=subjects.map(s=>`<div class="card click" data-subject="${escapeHTML(s)}"><div class="subject"><h3>${escapeHTML(s)}</h3><span class="pill">${subjectTopics[s].length} topics</span></div></div>`).join("");
+document.querySelectorAll("[data-subject]").forEach(el=>el.addEventListener("click",()=>{
+show("mcqPanel");$("subjectFilter").value=el.dataset.subject;fillTopics();applyFilter();
+}));
+}
+function fillFilters(){
+$("subjectFilter").innerHTML='<option value="All">All subjects</option>'+subjects.map(s=>`<option>${escapeHTML(s)}</option>`).join("");
+fillTopics();
+}
+function fillTopics(){
+const s=$("subjectFilter").value;
+let topics=s==="All"?[...new Set(qs.map(q=>q[1]))]:subjectTopics[s]||[];
+$("topicFilter").innerHTML='<option value="All">All topics</option>'+topics.map(t=>`<option>${escapeHTML(t)}</option>`).join("");
+}
+function applyFilter(){
+fillTopicsIfNeeded();
+const s=$("subjectFilter").value,t=$("topicFilter").value;
+filtered=qs.filter(q=>(s==="All"||q[0]===s)&&(t==="All"||q[1]===t));
+if(weakOnly)filtered=filtered.filter(q=>(stats.weak[q[1]]||0)>0);
+currentIndex=0;loadQuestion();
+}
+function fillTopicsIfNeeded(){
+const current=$("topicFilter").value;
+const s=$("subjectFilter").value;
+let topics=s==="All"?[...new Set(qs.map(q=>q[1]))]:subjectTopics[s]||[];
+const exists=[...$("topicFilter").options].some(o=>o.value===current);
+if(!exists){
+$("topicFilter").innerHTML='<option value="All">All topics</option>'+topics.map(t=>`<option>${escapeHTML(t)}</option>`).join("");
+}
+}
+function loadQuestion(){
+answered=false;$("feedback").innerHTML="";$("nextBtn").classList.add("hide");
+if(!filtered.length){
+$("qmeta").textContent="No questions found";$("qtext").textContent="Try another filter.";
+$("opts").innerHTML="";$("qbar").style.width="0%";return;
+}
+const q=filtered[currentIndex];
+$("qmeta").textContent=`${q[0]} • ${q[1]} • Question ${currentIndex+1}/${filtered.length}`;
+$("qbar").style.width=((currentIndex+1)/filtered.length*100)+"%";
+$("qtext").textContent=q[2];
+$("opts").innerHTML=q[3].map((o,i)=>`<button class="option" data-answer="${i}">${String.fromCharCode(65+i)}. ${escapeHTML(o)}</button>`).join("");
+document.querySelectorAll("[data-answer]").forEach(b=>b.addEventListener("click",()=>answer(Number(b.dataset.answer))));
+}
+function answer(i){
+if(answered)return;answered=true;
+const q=filtered[currentIndex],correct=i===q[4];
+stats.attempted++;
+if(correct)stats.correct++;else{stats.wrong++;stats.weak[q[1]]=(stats.weak[q[1]]||0)+1}
+saveStats();
+document.querySelectorAll("[data-answer]").forEach((b,j)=>{
+b.disabled=true;if(j===q[4])b.classList.add("correct");if(j===i&&!correct)b.classList.add("wrong");
+});
+$("feedback").innerHTML=`<div class="explain"><b class="${correct?"good":"danger"}">${correct?"✅ Correct":"❌ Incorrect"}</b><br>${escapeHTML(q[5])}</div>`;
+$("nextBtn").classList.remove("hide");
+}
+function nextQ(){if(!filtered.length)return;currentIndex=(currentIndex+1)%filtered.length;loadQuestion()}
+function shuffleCurrent(){
+if(filtered.length>1){let n=currentIndex;while(n===currentIndex)n=Math.floor(Math.random()*filtered.length);currentIndex=n}
+loadQuestion();
+}
+function renderWeak(){
+const entries=Object.entries(stats.weak).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+$("weakList").innerHTML=entries.length?entries.map(([t,n])=>`<div class="card topic"><b>${escapeHTML(t)}</b><span class="danger">${n} mistake${n===1?"":"s"}</span></div>`).join(""):`<div class="card"><p class="muted">No weak topics yet. Start the MCQ trainer.</p></div>`;
+}
+function renderRapid(){
+const facts=[
+["Cyanide","Complex IV / cytochrome c oxidase"],
+["CO","Binds hemoglobin and also inhibits Complex IV"],
+["McArdle","Muscle glycogen phosphorylase deficiency"],
+["Cori","Debranching enzyme deficiency"],
+["Pompe","Lysosomal acid alpha-1,4-glucosidase deficiency"],
+["Gaucher","Glucocerebrosidase deficiency"],
+["Tay-Sachs","Hexosaminidase A deficiency"],
+["Fabry","Alpha-galactosidase A deficiency"],
+["B12","Methylmalonic acid ↑ and homocysteine ↑"],
+["Lead","ALA dehydratase + ferrochelatase inhibited"]
+];
+$("rapidList").innerHTML=facts.map(x=>`<div class="card fact"><b>${escapeHTML(x[0])}</b><div class="muted">${escapeHTML(x[1])}</div></div>`).join("");
+}
+function renderSourceNotes(){
+$("sourceNotesList").innerHTML=sourceNotes.map((n,i)=>`<article class="card" style="margin-bottom:10px"><h3>${i+1}. ${escapeHTML(n[0])}</h3><p>${escapeHTML(n[1])}</p></article>`).join("");
+}
+function saveNotes(){
+localStorage.setItem("fmgeNotesV2",$("notes").value);
+$("noteStatus").textContent="✅ Notes saved on this device.";
+}
+function resetAll(){
+if(!confirm("Reset FMGE progress and weak-topic statistics?"))return;
+stats={attempted:0,correct:0,wrong:0,weak:{}};
+saveStats();renderWeak();show("home");
+}
+function formatAIAnswer(text){
+let s=escapeHTML(text);
+s=s.replace(/^### (.+)$/gm,"<h3>$1</h3>");
+s=s.replace(/\*\*(.*?)\*\*/g,"<strong>$1</strong>");
+s=s.replace(/^\* (.+)$/gm,"• $1");
+s=s.replace(/\n\n+/g,"<br><br>").replace(/\n/g,"<br>");
+return s;
+}
+async function askFMGEAI(){
+const q=$("aiQuestion").value.trim(),status=$("aiStatus"),box=$("aiAnswer"),out=$("aiAnswerText");
+if(!q){status.textContent="Please enter a question first.";return}
+status.textContent="🧠 FMGE Master AI is thinking...";
+box.classList.remove("hide");out.innerHTML="";
+try{
+const response=await fetch(FMGE_AI_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q,mode:$("aiMode").value,source:$("aiSource").value})});
+const text=await response.text();
+let data;
+try{data=JSON.parse(text)}catch(e){throw new Error("Server returned an invalid response.")}
+if(!response.ok)throw new Error(data.error||"AI request failed.");
+out.innerHTML=formatAIAnswer(data.answer||"No answer received.");
+status.textContent="✅ Answer ready";
+}catch(error){
+console.error(error);
+out.innerHTML="<p class='danger'>Unable to connect to FMGE Master AI.</p><p class='small muted'>"+escapeHTML(error.message)+"</p>";
+status.textContent="❌ Connection failed";
+}
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+document.querySelectorAll("[data-open]").forEach(el=>el.addEventListener("click",()=>show(el.dataset.open)));
+document.querySelectorAll("[data-home]").forEach(el=>el.addEventListener("click",()=>show("home")));
+$("resetBtn").addEventListener("click",resetAll);
+$("subjectFilter").addEventListener("change",()=>{fillTopics();applyFilter()});
+$("topicFilter").addEventListener("change",applyFilter);
+$("weakToggle").addEventListener("click",()=>{weakOnly=!weakOnly;$("weakToggle").textContent=weakOnly?"All questions":"Weak only";applyFilter()});
+$("nextBtn").addEventListener("click",nextQ);
+$("shuffleBtn").addEventListener("click",shuffleCurrent);
+$("saveNotesBtn").addEventListener("click",saveNotes);
+$("clearNotesBtn").addEventListener("click",()=>$("notes").value="");
+$("openPdfBtn").addEventListener("click",()=>$("pdfViewer").classList.remove("hide"));
+$("closePdfBtn").addEventListener("click",()=>$("pdfViewer").classList.add("hide"));
+$("askAiBtn").addEventListener("click",askFMGEAI);
+$("clearAiBtn").addEventListener("click",()=>{$("aiQuestion").value="";$("aiAnswerText").innerHTML="";$("aiAnswer").classList.add("hide");$("aiStatus").textContent=""});
+$("notes").value=localStorage.getItem("fmgeNotesV2")||"";
+renderSubjects();fillFilters();renderRapid();renderSourceNotes();updateStats();applyFilter();
+});
+</script>
+</body>
+</html>
