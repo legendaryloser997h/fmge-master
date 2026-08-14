@@ -103,6 +103,31 @@
 <div class="row" style="margin-top:9px"><button onclick="saveNotes()">Save notes</button><button class="ghost" onclick="document.getElementById('notes').value=''">Clear box</button></div>
 <p id="noteStatus" class="small muted"></p>
 </section>
+  <section id="aiPanel" class="panel">
+<button class="ghost back" onclick="show('home')">← Home</button>
+
+<div class="hero">
+<h1>🤖 FMGE AI Tutor</h1>
+<p>Ask FMGE Master AI any medical question.</p>
+</div>
+
+<div class="card">
+<textarea id="aiQuestion" rows="6"
+placeholder="Example: Paint factory worker with abdominal pain, constipation and anemia. Which enzyme is affected?"></textarea>
+
+<div class="row" style="margin-top:10px">
+<button onclick="askFMGEAI()">🧠 Ask FMGE Master</button>
+<button class="ghost" onclick="document.getElementById('aiQuestion').value=''">Clear</button>
+</div>
+
+<div id="aiStatus" class="small muted" style="margin-top:10px"></div>
+</div>
+
+<div id="aiAnswer" class="card hide" style="margin-top:12px">
+<h3 style="margin-top:0">🤖 FMGE Master AI</h3>
+<div id="aiAnswerText"></div>
+</div>
+  </section>
 
 <section id="teachPanel" class="panel">
 <button class="ghost back" onclick="show('home')">← Home</button>
