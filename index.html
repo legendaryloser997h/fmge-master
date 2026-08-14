@@ -298,6 +298,78 @@ function closePdf(){document.getElementById("pdfViewer").classList.add("hide");}
 
 document.getElementById("notes").value=localStorage.fmgeNotesV2||"";
 renderSubjects();fillFilters();renderRapid();updateStats();applyFilter();
+  const FMGE_AI_URL =
+  "https://fmge-master-ai.asaneeshqwe3.workers.dev/";
+
+async function askFMGEAI() {
+  const questionBox = document.getElementById("aiQuestion");
+  const answerBox = document.getElementById("aiAnswer");
+  const answerText = document.getElementById("aiAnswerText");
+  const status = document.getElementById("aiStatus");
+
+  const question = questionBox.value.trim();
+
+  if (!question) {
+    status.textContent = "Please enter a question first.";
+    return;
+  }
+
+  status.textContent = "🧠 FMGE Master AI is thinking...";
+  answerBox.classList.remove("hide");
+  answerText.innerHTML = "";
+
+  try {
+    const response = await fetch(FMGE_AI_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        question: question
+      })
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        data.error || "AI request failed."
+      );
+    }
+
+    const answer = data.answer || "No answer received.";
+
+    answerText.innerHTML = formatAIAnswer(answer);
+    status.textContent = "✅ Answer ready";
+
+  } catch (error) {
+    console.error(error);
+
+    answerText.innerHTML =
+      "<p class='danger'>Unable to connect to FMGE Master AI.</p>" +
+      "<p class='small muted'>" +
+      escapeHTML(error.message) +
+      "</p>";
+
+    status.textContent = "❌ Connection failed";
+  }
+}
+
+function formatAIAnswer(text) {
+  return escapeHTML(text)
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\n\n+/g, "</p><p>")
+    .replace(/\n/g, "<br>");
+}
+
+function escapeHTML(text) {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 </script>
 </body>
 </html>
