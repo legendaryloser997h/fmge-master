@@ -333,12 +333,14 @@ document.getElementById("notes").value=localStorage.fmgeNotesV2||"";
 renderSubjects();fillFilters();renderRapid();updateStats();applyFilter();
   const FMGE_AI_URL =
   "https://fmge-master-ai.asaneeshqwe3.workers.dev/";
-
-async function askFMGEAI() {
+  async function askFMGEAI() {
   const questionBox = document.getElementById("aiQuestion");
   const answerBox = document.getElementById("aiAnswer");
   const answerText = document.getElementById("aiAnswerText");
   const status = document.getElementById("aiStatus");
+
+  const mode = document.getElementById("aiMode").value;
+  const source = document.getElementById("aiSource").value;
 
   const question = questionBox.value.trim();
 
@@ -346,6 +348,88 @@ async function askFMGEAI() {
     status.textContent = "Please enter a question first.";
     return;
   }
+
+  let instruction = "";
+
+  if (mode === "quick") {
+    instruction = `
+Give a QUICK FMGE answer.
+
+Format:
+1. Direct answer
+2. One-line explanation
+3. FMGE pearl
+
+Keep it concise.
+`;
+  }
+
+  if (mode === "teach") {
+    instruction = `
+TEACH this concept clearly for FMGE.
+
+Explain:
+- Basic concept
+- Mechanism
+- Important clinical clues
+- FMGE exam pearl
+
+Use simple language.
+`;
+  }
+
+  if (mode === "master") {
+    instruction = `
+Give a MASTER-LEVEL FMGE explanation.
+
+Include:
+- Direct answer
+- Detailed mechanism
+- Clinical presentation
+- Important investigations
+- Treatment when relevant
+- Common exam traps
+- Memory trick
+- FMGE exam pearl
+
+Be comprehensive but organized.
+`;
+  }
+
+  if (mode === "mcq") {
+    instruction = `
+Create 3 FMGE-style MCQs based on this topic.
+
+For each:
+- Question
+- Four options (A-D)
+- Correct answer
+- Short explanation
+- Important FMGE pearl
+
+Do not make the questions ambiguous.
+`;
+  }
+
+  if (source === "biochem") {
+    instruction += `
+
+SOURCE PRIORITY:
+The student selected the Biochemistry Source.
+
+Prioritize the student's uploaded Biochemistry material when relevant.
+If the source does not contain the answer, use established medical knowledge.
+`;
+  }
+
+  const finalQuestion = `
+You are FMGE Master AI, an expert medical exam tutor.
+
+${instruction}
+
+Student question:
+${question}
+`;
 
   status.textContent = "🧠 FMGE Master AI is thinking...";
   answerBox.classList.remove("hide");
@@ -358,7 +442,7 @@ async function askFMGEAI() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        question: question
+        question: finalQuestion
       })
     });
 
@@ -370,6 +454,24 @@ async function askFMGEAI() {
       );
     }
 
+    answerText.innerHTML = formatAIAnswer(
+      data.answer || "No answer received."
+    );
+
+    status.textContent = "✅ Answer ready";
+
+  } catch (error) {
+    console.error(error);
+
+    answerText.innerHTML =
+      "<p class='danger'>Unable to connect to FMGE Master AI.</p>" +
+      "<p class='small muted'>" +
+      escapeHTML(error.message) +
+      "</p>";
+
+    status.textContent = "❌ Connection failed";
+  }
+  }
     const answer = data.answer || "No answer received.";
 
     answerText.innerHTML = formatAIAnswer(answer);
