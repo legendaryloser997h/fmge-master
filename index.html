@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b1020">
+<title>FMGE Master</title>
+<style>
+:root{--bg:#0b1020;--card:#141b2d;--card2:#1a2338;--text:#f5f7ff;--muted:#9ca8c0;--accent:#6ea8fe;--good:#4ade80;--bad:#fb7185;--line:#293550}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#080c18,#10182b);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.app{max-width:900px;margin:auto;padding:18px 14px 70px}.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.brand{font-size:25px;font-weight:800}.brand span{color:var(--accent)}button{border:0;border-radius:12px;padding:11px 14px;background:var(--accent);color:#07101f;font-weight:750;cursor:pointer}.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line)}
+.hero{background:linear-gradient(135deg,#18233c,#11182b);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:15px}.hero h1{margin:0 0 7px;font-size:28px}.hero p{margin:0;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}.stat{background:#0d1425;border:1px solid var(--line);border-radius:14px;padding:13px}.stat b{font-size:22px;display:block}.stat small{color:var(--muted)}
+.section{margin-top:18px}.section h2{font-size:18px;margin:0 0 10px}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px}.card h3{margin:0 0 5px}.card p{margin:0;color:var(--muted);font-size:13px}.subject{display:flex;justify-content:space-between;align-items:center;gap:8px}.pill{font-size:11px;background:#202b44;color:#b9c9e8;border-radius:999px;padding:5px 8px}
+.panel{display:none}.panel.active{display:block}.back{margin-bottom:12px}.question{font-size:19px;line-height:1.45;margin:12px 0}.options{display:grid;gap:9px}.option{text-align:left;background:var(--card2);color:var(--text);border:1px solid var(--line)}.option.correct{border-color:var(--good);background:#123322}.option.wrong{border-color:var(--bad);background:#351723}.explain{margin-top:13px;padding:14px;border-left:3px solid var(--accent);background:#10182a;border-radius:10px;color:#d9e1f2}
+textarea{width:100%;min-height:160px;background:#0c1323;color:var(--text);border:1px solid var(--line);border-radius:14px;padding:14px;font:inherit}.row{display:flex;gap:8px;flex-wrap:wrap}.notice{color:var(--muted);font-size:13px;margin-top:10px}.progress{height:8px;background:#202b40;border-radius:20px;overflow:hidden}.bar{height:100%;background:var(--accent);width:0%}
+@media(max-width:600px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.stat b{font-size:18px}.hero h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top">
+    <div class="brand">FMGE <span>MASTER</span></div>
+    <button class="ghost" onclick="resetProgress()">Reset</button>
+  </div>
+
+  <div id="home" class="panel active">
+    <div class="hero">
+      <h1>Your FMGE command center</h1>
+      <p>Learn → test → find mistakes → revise. Built as a single offline-friendly HTML file.</p>
+      <div class="stats">
+        <div class="stat"><b id="score">0%</b><small>Accuracy</small></div>
+        <div class="stat"><b id="answered">0</b><small>Answered</small></div>
+        <div class="stat"><b id="weak">0</b><small>Wrong</small></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>Study modes</h2>
+      <div class="grid">
+        <div class="card" onclick="show('mcq')"><h3>❓ MCQ Mode</h3><p>One question at a time with explanations.</p></div>
+        <div class="card" onclick="show('rapid')"><h3>⚡ Rapid Revision</h3><p>High-yield facts and exam traps.</p></div>
+        <div class="card" onclick="show('teach')"><h3>🧠 Teach Me</h3><p>Choose a subject and topic to study.</p></div>
+        <div class="card" onclick="show('notes')"><h3>📝 My Notes</h3><p>Save personal revision notes locally.</p></div>
+      </div>
+    </div>
+
+    <div class="section">
+      <h2>19 FMGE subjects</h2>
+      <div id="subjects" class="grid"></div>
+    </div>
+  </div>
+
+  <div id="mcq" class="panel">
+    <button class="ghost back" onclick="show('home')">← Home</button>
+    <div class="hero"><h1>MCQ Mode</h1><p id="qcount"></p><div class="progress"><div id="bar" class="bar"></div></div></div>
+    <div class="card">
+      <div id="question" class="question"></div>
+      <div id="options" class="options"></div>
+      <div id="explain"></div>
+      <div class="row" style="margin-top:14px"><button id="next" style="display:none" onclick="nextQuestion()">Next question →</button></div>
+    </div>
+  </div>
+
+  <div id="rapid" class="panel">
+    <button class="ghost back" onclick="show('home')">← Home</button>
+    <div class="hero"><h1>⚡ Rapid Revision</h1><p>Classic associations worth remembering for FMGE.</p></div>
+    <div id="rapidList"></div>
+  </div>
+
+  <div id="teach" class="panel">
+    <button class="ghost back" onclick="show('home')">← Home</button>
+    <div class="hero"><h1>🧠 Teach Me</h1><p>Select a subject. This first version gives you a compact high-yield starter sheet.</p></div>
+    <div id="teachContent"></div>
+  </div>
+
+  <div id="notes" class="panel">
+    <button class="ghost back" onclick="show('home')">← Home</button>
+    <div class="hero"><h1>📝 My Notes</h1><p>Your notes are saved only in this browser/device.</p></div>
+    <textarea id="notesBox" placeholder="Write your FMGE notes here..."></textarea>
+    <div class="row" style="margin-top:10px"><button onclick="saveNotes()">Save notes</button><button class="ghost" onclick="clearNotes()">Clear</button></div>
+    <div id="saved" class="notice"></div>
+  </div>
+</div>
+
+<script>
+const subjects=[
+"Anatomy","Physiology","Biochemistry","Pathology","Pharmacology","Microbiology","Forensic Medicine",
+"Community Medicine","Medicine","Psychiatry","Dermatology","Radiology","Surgery","Orthopedics",
+"Anesthesiology","Obstetrics & Gynecology","Pediatrics","ENT","Ophthalmology"
+];
+
+const teach={
+"Anatomy":"Focus: nerve lesions, brachial plexus, cranial nerves, triangles, spaces, blood supply, embryology and common clinical anatomy.",
+"Physiology":"Focus: cardiac cycle, ECG, respiratory physiology, renal clearance, acid-base, endocrine axes and reproductive physiology.",
+"Biochemistry":"Focus: rate-limiting enzymes, vitamins, inborn errors, glycogen storage diseases, amino acids, TCA, urea cycle and molecular biology.",
+"Pathology":"Focus: inflammation, neoplasia, hematology, renal pathology, liver disease, autoimmune disease and classic microscopic findings.",
+"Pharmacology":"Focus: mechanisms, adverse effects, contraindications, antidotes, autonomic drugs, antimicrobials, CNS and cardiovascular drugs.",
+"Microbiology":"Focus: organism identification, culture, toxins, vaccines, sterilization, hypersensitivity and classic clinical syndromes.",
+"Forensic Medicine":"Focus: injury, poisoning, asphyxia, sexual offences, identification and medicolegal principles.",
+"Community Medicine":"Focus: epidemiology, screening, biostatistics, vaccines, national programs and preventive medicine.",
+"Medicine":"Focus: emergency presentations, ECG, infections, endocrine, renal, respiratory, cardiovascular and neurologic disease.",
+"Psychiatry":"Focus: diagnostic features, psychopharmacology, substance use, mood disorders, psychosis and emergencies.",
+"Dermatology":"Focus: morphology, infections, autoimmune blistering diseases, drug eruptions and classic exam associations.",
+"Radiology":"Focus: basic imaging signs, chest X-ray, CT/MRI patterns, trauma and common emergencies.",
+"Surgery":"Focus: acute abdomen, trauma, hernia, thyroid, breast, vascular disease, GI surgery and perioperative care.",
+"Orthopedics":"Focus: fractures, nerve injuries, bone tumors, arthritis, pediatric orthopedics and common clinical tests.",
+"Anesthesiology":"Focus: airway, regional anesthesia, drugs, monitoring, shock and perioperative emergencies.",
+"Obstetrics & Gynecology":"Focus: labor, fetal monitoring, hypertensive disorders, PPH, contraception, infertility, gynecologic malignancy.",
+"Pediatrics":"Focus: milestones, neonatal care, vaccines, nutrition, congenital disease, common infections and pediatric emergencies.",
+"ENT":"Focus: hearing tests, vertigo, epistaxis, larynx, neck masses, sinus disease and common emergencies.",
+"Ophthalmology":"Focus: glaucoma, cataract, retina, optic nerve, red eye, ocular trauma and classic fundus findings."
+};
+
+const questions=[
+{q:"Which enzyme is deficient in von Gierke disease (GSD I)?",o:["Glucose-6-phosphatase","Branching enzyme","Muscle phosphorylase","Acid maltase"],a:0,e:"GSD I (von Gierke) is due to glucose-6-phosphatase deficiency. It causes severe fasting hypoglycemia, lactic acidosis, hyperuricemia and hepatomegaly."},
+{q:"Which vitamin deficiency classically causes megaloblastic anemia with increased methylmalonic acid?",o:["Folate","Vitamin B12","Vitamin B6","Vitamin B2"],a:1,e:"Vitamin B12 deficiency increases methylmalonic acid. Folate deficiency increases homocysteine but methylmalonic acid remains normal."},
+{q:"The rate-limiting enzyme of glycolysis is:",o:["Hexokinase","Pyruvate kinase","Phosphofructokinase-1","Glucose-6-phosphatase"],a:2,e:"PFK-1 is the committed/rate-limiting enzyme of glycolysis and is activated by AMP and fructose-2,6-bisphosphate."},
+{q:"A cherry-red spot with hepatosplenomegaly is classically associated with:",o:["Tay-Sachs disease","Gaucher disease","Niemann-Pick disease","Alkaptonuria"],a:2,e:"Niemann-Pick disease can present with hepatosplenomegaly and a cherry-red macular spot."},
+{q:"Which immunoglobulin crosses the placenta?",o:["IgA","IgE","IgG","IgM"],a:2,e:"IgG crosses the placenta and provides passive immunity to the fetus."},
+{q:"The antidote for acetaminophen (paracetamol) poisoning is:",o:["Atropine","N-acetylcysteine","Naloxone","Flumazenil"],a:1,e:"N-acetylcysteine replenishes glutathione and is the specific antidote for acetaminophen toxicity."},
+{q:"Which cranial nerve carries the afferent limb of the corneal reflex?",o:["CN II","CN V1","CN VII","CN IX"],a:1,e:"The ophthalmic division of trigeminal nerve (V1) is the afferent limb; facial nerve (VII) is the efferent limb."},
+{q:"The most common cause of postpartum hemorrhage is:",o:["Uterine atony","Retained placenta","Genital tract trauma","Coagulopathy"],a:0,e:"The most common cause is uterine atony. Remember the 4 Ts: Tone, Tissue, Trauma, Thrombin."}
+];
+
+const rapid=[
+["Biochemistry","PFK-1 = rate-limiting enzyme of glycolysis."],
+["Biochemistry","B12 deficiency → ↑ methylmalonic acid + ↑ homocysteine."],
+["Pathology","Virchow triad = endothelial injury + stasis/turbulence + hypercoagulability."],
+["Pharmacology","N-acetylcysteine = antidote for acetaminophen toxicity."],
+["Microbiology","IgG is the major immunoglobulin crossing the placenta."],
+["OBG","PPH: remember 4 Ts — Tone, Tissue, Trauma, Thrombin."],
+["Anatomy","Corneal reflex: V1 afferent, VII efferent."],
+["Medicine","Kussmaul breathing is classically associated with metabolic acidosis."]
+];
+
+let current=0, answered=Number(localStorage.fmgeAnswered||0), correct=Number(localStorage.fmgeCorrect||0), wrong=Number(localStorage.fmgeWrong||0);
+
+function updateStats(){
+document.getElementById("answered").textContent=answered;
+document.getElementById("weak").textContent=wrong;
+document.getElementById("score").textContent=answered?Math.round(correct/answered*100)+"%":"0%";
+}
+function show(id){
+document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+window.scrollTo(0,0);
+if(id==="mcq")renderQuestion();
+}
+function renderSubjects(){
+document.getElementById("subjects").innerHTML=subjects.map(s=>`<div class="card subject" onclick="teachSubject('${s}')"><div><h3>${s}</h3><p>${teach[s].slice(0,75)}...</p></div><span class="pill">Study</span></div>`).join("");
+}
+function teachSubject(s){
+show("teach");
+document.getElementById("teachContent").innerHTML=`<div class="card"><h2>${s}</h2><p style="line-height:1.7;color:#d2dbec">${teach[s]}</p><h3>FMGE approach</h3><p style="line-height:1.7;color:#d2dbec">Start with core concepts, then classic associations, clinical presentation, investigations, management and finally MCQs. Add your detailed notes in My Notes.</p></div>`;
+}
+function renderQuestion(){
+let x=questions[current];
+document.getElementById("qcount").textContent=`Question ${current+1} of ${questions.length}`;
+document.getElementById("bar").style.width=((current+1)/questions.length*100)+"%";
+document.getElementById("question").textContent=x.q;
+document.getElementById("explain").innerHTML="";
+document.getElementById("next").style.display="none";
+document.getElementById("options").innerHTML=x.o.map((v,i)=>`<button class="option" onclick="answer(${i})">${String.fromCharCode(65+i)}. ${v}</button>`).join("");
+}
+function answer(i){
+let x=questions[current], buttons=[...document.querySelectorAll(".option")];
+buttons.forEach(b=>b.disabled=true);
+buttons[x.a].classList.add("correct");
+if(i===x.a){correct++;}else{wrong++;buttons[i].classList.add("wrong");}
+answered++;
+localStorage.fmgeAnswered=answered;localStorage.fmgeCorrect=correct;localStorage.fmgeWrong=wrong;
+updateStats();
+document.getElementById("explain").innerHTML=`<div class="explain"><b>${i===x.a?"Correct!":"Incorrect."}</b><br>${x.e}</div>`;
+document.getElementById("next").style.display="inline-block";
+}
+function nextQuestion(){current=(current+1)%questions.length;renderQuestion();}
+function renderRapid(){document.getElementById("rapidList").innerHTML=rapid.map(x=>`<div class="card" style="margin-bottom:9px"><span class="pill">${x[0]}</span><p style="line-height:1.6;margin:10px 0 0">${x[1]}</p></div>`).join("");}
+function saveNotes(){localStorage.fmgeNotes=document.getElementById("notesBox").value;document.getElementById("saved").textContent="Saved on this device.";setTimeout(()=>document.getElementById("saved").textContent="",1800)}
+function clearNotes(){if(confirm("Clear your notes?")){localStorage.removeItem("fmgeNotes");document.getElementById("notesBox").value="";}}
+function resetProgress(){if(confirm("Reset all quiz progress?")){answered=correct=wrong=0;localStorage.removeItem("fmgeAnswered");localStorage.removeItem("fmgeCorrect");localStorage.removeItem("fmgeWrong");updateStats();}}
+document.getElementById("notesBox").value=localStorage.fmgeNotes||"";
+renderSubjects();renderRapid();updateStats();renderQuestion();
+</script>
+</body>
+</html>
