@@ -112,27 +112,60 @@
 
 <div class="hero">
 <h1>🤖 FMGE AI Tutor</h1>
-<p>Ask FMGE Master AI any medical question.</p>
+<p>Choose how deeply you want FMGE Master to teach.</p>
 </div>
 
 <div class="card">
-<textarea id="aiQuestion" rows="6"
-placeholder="Example: Paint factory worker with abdominal pain, constipation and anemia. Which enzyme is affected?"></textarea>
+
+<label class="small muted">Mode</label>
+
+<select id="aiMode" class="select" style="margin-top:6px">
+<option value="quick">⚡ Quick Recall</option>
+<option value="teach" selected>🧠 Teach Me</option>
+<option value="master">🔥 Master Mode</option>
+<option value="mcq">❓ Make MCQs</option>
+</select>
+
+<div style="margin-top:12px">
+<label class="small muted">Source</label>
+
+<select id="aiSource" class="select" style="margin-top:6px">
+<option value="general">🌐 General Medical Knowledge</option>
+<option value="biochem">📖 Biochemistry Source</option>
+</select>
+</div>
+
+<textarea
+id="aiQuestion"
+rows="6"
+style="margin-top:12px"
+placeholder="Example: What enzyme is inhibited by cyanide?"
+></textarea>
 
 <div class="row" style="margin-top:10px">
 <button onclick="askFMGEAI()">🧠 Ask FMGE Master</button>
-<button class="ghost" onclick="document.getElementById('aiQuestion').value=''">Clear</button>
+
+<button
+class="ghost"
+onclick="document.getElementById('aiQuestion').value=''"
+>
+Clear
+</button>
 </div>
 
 <div id="aiStatus" class="small muted" style="margin-top:10px"></div>
+
 </div>
 
 <div id="aiAnswer" class="card hide" style="margin-top:12px">
-<h3 style="margin-top:0">🤖 FMGE Master AI</h3>
-<div id="aiAnswerText"></div>
-</div>
-  </section>
 
+<h3 style="margin-top:0">🤖 FMGE Master AI</h3>
+
+<div id="aiAnswerText"></div>
+
+</div>
+
+  </section>
 <section id="teachPanel" class="panel">
 <button class="ghost back" onclick="show('home')">← Home</button>
 <div class="hero"><h1 id="teachTitle">🧠 Subject Map</h1><p>High-yield topic map for planning your study.</p></div>
